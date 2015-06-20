@@ -5,7 +5,11 @@
 
 int win32softwarecursor(bool enable)
 {
-	static int setting;
+	static int setting = 0;
+	static bool enabled = false;
+
+	if(enabled == enable) // if no state change, return 0
+		return 0;
 
 	if(enable)
 	{
@@ -15,19 +19,29 @@ int win32softwarecursor(bool enable)
 			return -1;
 		}
 
-		if(!SystemParametersInfo(SPI_SETMOUSETRAILS, -1, 0, SPIF_SENDCHANGE))
+		if((setting == 0) || (setting == 1))
 		{
-			fprintf(stderr, "failed to set windows mouse trails setting to -1\n");
-			return -1;
+			if(!SystemParametersInfo(SPI_SETMOUSETRAILS, -1, 0, SPIF_SENDCHANGE))
+			{
+				fprintf(stderr, "failed to set windows mouse trails setting to -1\n");
+				return -2;
+			}
 		}
+
+		enabled = true;
 	}
 	else
 	{
-		if(!SystemParametersInfo(SPI_SETMOUSETRAILS, setting, 0, SPIF_SENDCHANGE))
+		if((setting == 0) || (setting == 1))
 		{
-			fprintf(stderr, "failed to set windows mouse trails setting to %i\n", setting);
-			return -1;
+			if(!SystemParametersInfo(SPI_SETMOUSETRAILS, setting, 0, SPIF_SENDCHANGE))
+			{
+				fprintf(stderr, "failed to set windows mouse trails setting to %i\n", setting);
+				return -1;
+			}
 		}
+
+		enabled = false;
 	}
 
 	return 0;
